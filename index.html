@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comtheria RP</title>
+  <title>Comtheria Time</title>
   <style>
     body {
       margin: 0;
@@ -52,18 +52,36 @@
       font-size: 16px;
     }
     ul { line-height: 1.8; }
+    .months {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .month {
+      border: 1px solid rgba(122,168,255,0.22);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      color: #dfeffc;
+    }
+    .month.current {
+      background: rgba(122,168,255,0.12);
+      border-color: rgba(122,168,255,0.5);
+    }
   </style>
 </head>
 <body>
   <div class="box">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-      <h1>Comtheria Calendar</h1>
+      <h1>Comtheria Time</h1>
       <span class="badge">@everyone Update</span>
     </div>
 
     <p class="small">Current RP date: <strong>3 January, Year 3</strong></p>
 
-    <div class="time" id="rpTime">00:00</div>
+    <div class="time" id="rpTime">13:00</div>
     <div class="badge" id="phase">Day</div>
 
     <p><strong>Malaysia Time:</strong> <span id="myTime">--:--</span></p>
@@ -87,16 +105,32 @@
     <ul>
       <li>1 RP month = 15 real-life days.</li>
       <li>1 RP year = 12 months.</li>
-      <li>Each month has 30 or 31 RP days.</li>
-      <li>February 29 occurs on RP leap years.</li>
-      <li>Every 1 hour, night begins.</li>
-      <li>After 1 hour, day begins again.</li>
+      <li>1 RP day = 24 RP hours.</li>
+      <li>1 RP hour = 20 real-life minutes.</li>
+      <li>1 RP month = 45 RP days.</li>
+      <li>Day and night alternate every RP hour.</li>
       <li>RP time is anchored to Malaysia time.</li>
       <li>Timezone differences may make it look earlier or later.</li>
     </ul>
+
+    <h3>Months</h3>
+    <div class="months" id="months"></div>
   </div>
 
   <script>
+    const monthNames = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    const monthsEl = document.getElementById("months");
+    monthNames.forEach((name, index) => {
+      const div = document.createElement("div");
+      div.className = "month" + (index === 0 ? " current" : "");
+      div.textContent = name;
+      monthsEl.appendChild(div);
+    });
+
     function formatTime(date, tz) {
       return new Intl.DateTimeFormat("en-GB", {
         timeZone: tz,
@@ -115,14 +149,19 @@
       document.getElementById("myTime").textContent = malaysia;
       document.getElementById("localTime").textContent = local;
 
+      // RP time anchor = Malaysia
       const malaysiaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
-      const h = malaysiaNow.getHours();
-      const m = malaysiaNow.getMinutes();
+      const realMinutes = malaysiaNow.getHours() * 60 + malaysiaNow.getMinutes();
+
+      // 1 RP hour = 20 real minutes
+      const rpMinutesTotal = realMinutes / 20;
+      const rpHour = Math.floor(rpMinutesTotal) % 24;
+      const rpMinute = Math.round((rpMinutesTotal - Math.floor(rpMinutesTotal)) * 60) % 60;
 
       document.getElementById("rpTime").textContent =
-        String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+        String(rpHour).padStart(2, "0") + ":" + String(rpMinute).padStart(2, "0");
 
-      const phase = (h % 2 === 0) ? "Night" : "Day";
+      const phase = (rpHour % 2 === 0) ? "Day" : "Night";
       document.getElementById("phase").textContent = phase;
     }
 
