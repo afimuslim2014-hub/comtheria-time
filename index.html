@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comtheria RP</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #07111b;
+      color: #edf8ff;
+      padding: 18px;
+    }
+    .box {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(12,25,36,0.95);
+      border: 1px solid rgba(122,168,255,0.22);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+    h1 { margin-top: 0; }
+    .small { color: #a6c7da; }
+    .time {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin: 16px 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(119,240,209,0.12);
+      border: 1px solid rgba(119,240,209,0.35);
+      color: #baf9eb;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(122,168,255,0.22);
+      background: rgba(9,15,20,0.9);
+      color: white;
+      font-size: 16px;
+    }
+    ul { line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h1>RP Calendar</h1>
+      <span class="badge">@everyone Update</span>
+    </div>
+
+    <p class="small">Current RP date: <strong>3 January, Year 3</strong></p>
+
+    <div class="time" id="rpTime">00:00</div>
+    <div class="badge" id="phase">Day</div>
+
+    <p><strong>Malaysia Time:</strong> <span id="myTime">--:--</span></p>
+    <p><strong>Your Timezone:</strong> <span id="localTime">--:--</span></p>
+
+    <select id="timezoneSelect">
+      <option value="Asia/Kuala_Lumpur">Malaysia</option>
+      <option value="UTC">UTC</option>
+      <option value="America/New_York">New York</option>
+      <option value="America/Los_Angeles">Los Angeles</option>
+      <option value="Europe/London">London</option>
+      <option value="Europe/Berlin">Berlin</option>
+      <option value="Asia/Singapore">Singapore</option>
+      <option value="Asia/Tokyo">Tokyo</option>
+      <option value="Australia/Sydney">Sydney</option>
+      <option value="Australia/Adelaide">Adelaide</option>
+      <option value="Pacific/Auckland">Auckland</option>
+    </select>
+
+    <h3>Rules</h3>
+    <ul>
+      <li>1 RP month = 15 real-life days.</li>
+      <li>1 RP year = 12 months.</li>
+      <li>Each month has 30 or 31 RP days.</li>
+      <li>February 29 occurs on RP leap years.</li>
+      <li>Every 1 hour, night begins.</li>
+      <li>After 1 hour, day begins again.</li>
+      <li>RP time is anchored to Malaysia time.</li>
+      <li>Timezone differences may make it look earlier or later.</li>
+    </ul>
+  </div>
+
+  <script>
+    function formatTime(date, tz) {
+      return new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(date);
+    }
+
+    function update() {
+      const now = new Date();
+      const malaysia = formatTime(now, "Asia/Kuala_Lumpur");
+      const tz = document.getElementById("timezoneSelect").value;
+      const local = formatTime(now, tz);
+
+      document.getElementById("myTime").textContent = malaysia;
+      document.getElementById("localTime").textContent = local;
+
+      const malaysiaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
+      const h = malaysiaNow.getHours();
+      const m = malaysiaNow.getMinutes();
+
+      document.getElementById("rpTime").textContent =
+        String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+
+      const phase = (h % 2 === 0) ? "Night" : "Day";
+      document.getElementById("phase").textContent = phase;
+    }
+
+    document.getElementById("timezoneSelect").addEventListener("change", update);
+    update();
+    setInterval(update, 1000);
+  </script>
+</body>
+</html>
