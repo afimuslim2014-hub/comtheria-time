@@ -103,11 +103,11 @@
 
     <h3>Rules</h3>
     <ul>
-      <li>1 RP month = 15 real-life days.</li>
+      <li>1 RP month = 10 real-life days.</li>
       <li>1 RP year = 12 months.</li>
+      <li>1 RP month = 30 RP days.</li>
       <li>1 RP day = 24 RP hours.</li>
       <li>1 RP hour = 20 real-life minutes.</li>
-      <li>1 RP month = 45 RP days.</li>
       <li>Day and night alternate every RP hour.</li>
       <li>RP time is anchored to Malaysia time.</li>
       <li>Timezone differences may make it look earlier or later.</li>
@@ -150,14 +150,12 @@
       document.getElementById("myTime").textContent = malaysia;
       document.getElementById("localTime").textContent = local;
 
-      // Real-time diff from the RP anchor date
       const malaysiaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
       const diffMs = malaysiaNow.getTime() - baseDate.getTime();
 
-      // 1 RP hour = 20 real minutes
       const rpHoursElapsed = diffMs / (20 * 60 * 1000);
       const rpHour = Math.floor(rpHoursElapsed) % 24;
-      const rpMinute = Math.round(((rpHoursElapsed % 1) * 60)) % 60;
+      const rpMinute = Math.round((rpHoursElapsed % 1) * 60) % 60;
 
       document.getElementById("rpTime").textContent =
         String(rpHour).padStart(2, "0") + ":" + String(rpMinute).padStart(2, "0");
