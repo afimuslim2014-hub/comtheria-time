@@ -118,6 +118,7 @@
   </div>
 
   <script>
+    const baseDate = new Date("2026-09-25T17:44:00+08:00");
     const monthNames = [
       "January","February","March","April","May","June",
       "July","August","September","October","November","December"
@@ -149,14 +150,14 @@
       document.getElementById("myTime").textContent = malaysia;
       document.getElementById("localTime").textContent = local;
 
-      // RP time anchor = Malaysia
+      // Real-time diff from the RP anchor date
       const malaysiaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
-      const realMinutes = malaysiaNow.getHours() * 60 + malaysiaNow.getMinutes();
+      const diffMs = malaysiaNow.getTime() - baseDate.getTime();
 
       // 1 RP hour = 20 real minutes
-      const rpMinutesTotal = realMinutes / 20;
-      const rpHour = Math.floor(rpMinutesTotal) % 24;
-      const rpMinute = Math.round((rpMinutesTotal - Math.floor(rpMinutesTotal)) * 60) % 60;
+      const rpHoursElapsed = diffMs / (20 * 60 * 1000);
+      const rpHour = Math.floor(rpHoursElapsed) % 24;
+      const rpMinute = Math.round(((rpHoursElapsed % 1) * 60)) % 60;
 
       document.getElementById("rpTime").textContent =
         String(rpHour).padStart(2, "0") + ":" + String(rpMinute).padStart(2, "0");
