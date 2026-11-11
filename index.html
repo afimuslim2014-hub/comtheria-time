@@ -22,7 +22,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #07111b;
+      background: var(--bg);
       color: var(--text);
       padding: 18px;
       transition: background 0.8s ease;
@@ -218,7 +218,6 @@
       { label: "Malaysia (Kuala Lumpur)", value: "Asia/Kuala_Lumpur" },
       { label: "Singapore (Singapore)", value: "Asia/Singapore" },
       { label: "Indonesia (Jakarta)", value: "Asia/Jakarta" },
-      { label: "Indonesia (Bandung)", value: "Asia/Jakarta" },
       { label: "Thailand (Bangkok)", value: "Asia/Bangkok" },
       { label: "Vietnam (Ho Chi Minh City)", value: "Asia/Ho_Chi_Minh" },
       { label: "Philippines (Manila)", value: "Asia/Manila" },
@@ -229,7 +228,7 @@
       { label: "South Korea (Seoul)", value: "Asia/Seoul" },
       { label: "India (Kolkata)", value: "Asia/Kolkata" },
       { label: "Pakistan (Karachi)", value: "Asia/Karachi" },
-      { label: "UAE (Dubai)", value: "Asia/Dubai" },
+      { label: "United Arab Emirates (Dubai)", value: "Asia/Dubai" },
       { label: "Saudi Arabia (Riyadh)", value: "Asia/Riyadh" },
       { label: "Iran (Tehran)", value: "Asia/Tehran" },
       { label: "Nepal (Kathmandu)", value: "Asia/Kathmandu" },
@@ -348,3 +347,51 @@
 
     function getRpState(now) {
       const elapsedMs = now.getTime() - START_DATE.getTime();
+      const totalRpDays = Math.floor(elapsedMs / REAL_MS_PER_RP_DAY);
+      const totalMonths = Math.floor(totalRpDays / RP_MONTH_DAYS);
+      const monthIndex = totalMonths % RP_YEAR_MONTHS;
+      const yearNumber = START_YEAR + Math.floor(totalMonths / RP_YEAR_MONTHS);
+      const dayOfMonth = (totalRpDays % RP_MONTH_DAYS) + 1;
+
+      const rpHoursElapsed = Math.floor(elapsedMs / REAL_MS_PER_RP_HOUR);
+      const rpHour = rpHoursElapsed % 24;
+      const rpMinute = Math.floor((elapsedMs % REAL_MS_PER_RP_HOUR) / (60 * 1000));
+
+      return {
+        currentMonth: monthNames[monthIndex],
+        dayOfMonth,
+        yearNumber,
+        rpHour,
+        rpMinute
+      };
+    }
+
+    function getCurrentSeason(now) {
+      return seasons.find((season) => now >= season.start && now <= season.end) || null;
+    }
+
+    function renderSeasons(now) {
+      const seasonList = document.getElementById("seasonList");
+      seasonList.innerHTML = "";
+
+      const currentSeason = getCurrentSeason(now);
+
+      seasons.forEach((season) => {
+        const el = document.createElement("div");
+        const active = currentSeason && season.title === currentSeason.title;
+        el.className = "season" + (active ? " active" : "");
+        el.innerHTML = `
+          <strong>${season.title}</strong>
+          <span>${formatDateShort(season.start)} - ${formatDateShort(season.end)}</span>
+        `;
+        seasonList.appendChild(el);
+      });
+
+      const futureEl = document.createElement("div");
+      futureEl.className = "season";
+      futureEl.innerHTML = "<strong>Future Season coming soon in 1/6/2027</strong>";
+      seasonList.appendChild(futureEl);
+
+      const banner = document.getElementById("currentSeasonBanner");
+      if (currentSeason) {
+        banner.textContent = `Current Season: ${currentSeason
