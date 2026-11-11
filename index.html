@@ -394,4 +394,46 @@
 
       const banner = document.getElementById("currentSeasonBanner");
       if (currentSeason) {
-        banner.textContent = `Current Season: ${currentSeason
+        banner.textContent = `Current Season: ${currentSeason.title}`;
+      } else {
+        banner.textContent = "Current Season: Future Season coming soon";
+      }
+    }
+
+    function update() {
+      const now = new Date();
+      const malaysia = formatTime(now, "Asia/Kuala_Lumpur");
+      const tz = document.getElementById("timezoneSelect").value;
+      const local = formatTime(now, tz);
+
+      document.getElementById("myTime").textContent = malaysia;
+      document.getElementById("localTime").textContent = local;
+
+      const rpState = getRpState(now);
+      document.getElementById("rpDate").textContent = `${rpState.dayOfMonth} ${rpState.currentMonth}, Year ${rpState.yearNumber}`;
+
+      document.getElementById("rpTime").textContent =
+        String(rpState.rpHour).padStart(2, "0") + ":" + String(rpState.rpMinute).padStart(2, "0");
+
+      const phase = (rpState.rpHour % 2 === 0) ? "Day" : "Night";
+      const phaseEl = document.getElementById("phase");
+      phaseEl.textContent = phase;
+      phaseEl.classList.toggle("day", phase === "Day");
+      phaseEl.classList.toggle("night", phase === "Night");
+
+      document.body.classList.toggle("night", phase === "Night");
+
+      const monthCells = document.querySelectorAll(".month");
+      monthCells.forEach((cell, index) => {
+        cell.classList.toggle("current", monthNames[index] === rpState.currentMonth);
+      });
+
+      renderSeasons(now);
+    }
+
+    document.getElementById("timezoneSelect").addEventListener("change", update);
+    update();
+    setInterval(update, 1000);
+  </script>
+</body>
+</html>
