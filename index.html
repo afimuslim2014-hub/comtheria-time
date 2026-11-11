@@ -12,6 +12,7 @@
       color: #edf8ff;
       padding: 18px;
     }
+
     .box {
       max-width: 900px;
       margin: 0 auto;
@@ -21,14 +22,17 @@
       padding: 20px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     }
+
     h1 { margin-top: 0; }
     .small { color: #a6c7da; }
+
     .time {
       font-size: 42px;
       font-weight: 700;
       letter-spacing: 2px;
       margin: 16px 0;
     }
+
     .badge {
       display: inline-block;
       padding: 8px 12px;
@@ -41,6 +45,7 @@
       text-transform: uppercase;
       font-weight: 700;
     }
+
     select {
       width: 100%;
       padding: 12px;
@@ -51,13 +56,16 @@
       color: white;
       font-size: 16px;
     }
+
     ul { line-height: 1.8; }
+
     .months {
       display: grid;
       grid-template-columns: repeat(4, minmax(120px, 1fr));
       gap: 10px;
       margin-top: 12px;
     }
+
     .month {
       border: 1px solid rgba(122,168,255,0.22);
       border-radius: 12px;
@@ -66,10 +74,30 @@
       background: rgba(255,255,255,0.02);
       color: #dfeffc;
     }
+
     .month.current {
       background: rgba(122,168,255,0.12);
       border-color: rgba(122,168,255,0.5);
     }
+
+    .season {
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(122,168,255,0.18);
+      background: rgba(255,255,255,0.02);
+      color: #dfeffc;
+      transition: 0.2s ease;
+    }
+
+    .season.active {
+      border-color: rgba(119,240,209,0.6);
+      background: rgba(119,240,209,0.08);
+      box-shadow: 0 0 12px rgba(119,240,209,0.12);
+    }
+
+    .season strong { display: block; margin-bottom: 4px; }
+    .season span { color: #a6c7da; }
   </style>
 </head>
 <body>
@@ -114,36 +142,148 @@
     </ul>
 
     <h3>Seasons</h3>
-    <div class="season-box" style="margin-top: 12px; padding: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(122,168,255,0.22); border-radius: 12px; color: #dfeffc;">
-      <p style="margin: 0 0 10px; color: #dfeffc;">
-        <strong>Current world, nation, and everything stayed.</strong> But a new season brought new things.
-      </p>
-
-      <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(122,168,255,0.18);">
-        <strong>Season 1 / Era of Beginning</strong><br>
-        <span style="color: #a6c7da;">16/8/2026 - 8/10/2026</span>
-      </div>
-
-      <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(122,168,255,0.18);">
-        <strong>Season 2 / GREAT Economic Booming</strong><br>
-        <span style="color: #a6c7da;">15/10/2026 - 1/12/2026</span>
-      </div>
-
-      <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(122,168,255,0.18);">
-        <strong>Season 3 / Era of COLONIALISM</strong><br>
-        <span style="color: #a6c7da;">21/12/2026 - 1/6/2027</span>
-      </div>
-
-      <div style="margin-bottom: 10px;">
-        <strong>Season 4 / Era of IMPERIALISM</strong><br>
-        <span style="color: #a6c7da;">15/6/2027 - 10/11/2027</span>
-      </div>
-
-      <p style="margin: 0; color: #baf9eb; font-weight: 700;">
-        Future Season coming soon in 1/6/2027
-      </p>
-    </div>
+    <div id="seasonList"></div>
 
     <h3>Months</h3>
     <div class="months" id="months"></div>
   </div>
+
+  <script>
+    const monthNames = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    const RP_MONTH_DAYS = 30;
+    const RP_YEAR_MONTHS = 12;
+    const REAL_MS_PER_RP_DAY = 8 * 60 * 60 * 1000; // 10 real days = 1 RP month = 30 RP days
+    const REAL_MS_PER_RP_HOUR = 20 * 60 * 1000;
+    const START_DATE = new Date("2026-09-25T17:44:00+08:00");
+    const START_YEAR = 3;
+
+    const seasons = [
+      {
+        title: "Season 1 / Era of Beginning",
+        start: new Date("2026-08-16T00:00:00+08:00"),
+        end: new Date("2026-10-08T23:59:59+08:00")
+      },
+      {
+        title: "Season 2 / GREAT Economic Booming",
+        start: new Date("2026-10-15T00:00:00+08:00"),
+        end: new Date("2026-12-01T23:59:59+08:00")
+      },
+      {
+        title: "Season 3 / Era of COLONIALISM",
+        start: new Date("2026-12-21T00:00:00+08:00"),
+        end: new Date("2027-06-01T23:59:59+08:00")
+      },
+      {
+        title: "Season 4 / Era of IMPERIALISM",
+        start: new Date("2027-06-15T00:00:00+08:00"),
+        end: new Date("2027-11-10T23:59:59+08:00")
+      }
+    ];
+
+    const monthsEl = document.getElementById("months");
+    monthNames.forEach((name, index) => {
+      const div = document.createElement("div");
+      div.className = "month" + (index === 0 ? " current" : "");
+      div.textContent = name;
+      monthsEl.appendChild(div);
+    });
+
+    function formatTime(date, tz) {
+      return new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(date);
+    }
+
+    function getRpState(now) {
+      const elapsedMs = now.getTime() - START_DATE.getTime();
+      const totalRpDays = Math.floor(elapsedMs / REAL_MS_PER_RP_DAY);
+      const totalMonths = Math.floor(totalRpDays / RP_MONTH_DAYS);
+      const monthIndex = totalMonths % RP_YEAR_MONTHS;
+      const yearNumber = START_YEAR + Math.floor(totalMonths / RP_YEAR_MONTHS);
+      const dayOfMonth = (totalRpDays % RP_MONTH_DAYS) + 1;
+
+      const rpHoursElapsed = Math.floor(elapsedMs / REAL_MS_PER_RP_HOUR);
+      const rpHour = rpHoursElapsed % 24;
+      const rpMinute = Math.floor((elapsedMs % REAL_MS_PER_RP_HOUR) / (60 * 1000));
+
+      return {
+        currentMonth: monthNames[monthIndex],
+        dayOfMonth,
+        yearNumber,
+        rpHour,
+        rpMinute
+      };
+    }
+
+    function renderSeasons(now) {
+      const seasonList = document.getElementById("seasonList");
+      seasonList.innerHTML = "";
+
+      seasons.forEach((season) => {
+        const el = document.createElement("div");
+        const active = now >= season.start && now <= season.end;
+        el.className = "season" + (active ? " active" : "");
+
+        el.innerHTML = `
+          <strong>${season.title}</strong>
+          <span>${formatDateShort(season.start)} - ${formatDateShort(season.end)}</span>
+        `;
+
+        seasonList.appendChild(el);
+      });
+
+      const futureEl = document.createElement("div");
+      futureEl.className = "season";
+      futureEl.innerHTML = "<strong>Future Season coming soon in 1/6/2027</strong>";
+      seasonList.appendChild(futureEl);
+    }
+
+    function formatDateShort(date) {
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function update() {
+      const now = new Date();
+      const malaysia = formatTime(now, "Asia/Kuala_Lumpur");
+      const tz = document.getElementById("timezoneSelect").value;
+      const local = formatTime(now, tz);
+
+      document.getElementById("myTime").textContent = malaysia;
+      document.getElementById("localTime").textContent = local;
+
+      const { currentMonth, dayOfMonth, yearNumber, rpHour, rpMinute } = getRpState(now);
+      document.getElementById("rpDate").textContent = `${dayOfMonth} ${currentMonth}, Year ${yearNumber}`;
+
+      document.getElementById("rpTime").textContent =
+        String(rpHour).padStart(2, "0") + ":" + String(rpMinute).padStart(2, "0");
+
+      const phase = (rpHour % 2 === 0) ? "Day" : "Night";
+      document.getElementById("phase").textContent = phase;
+
+      // highlight current month in the month grid
+      const monthCells = document.querySelectorAll(".month");
+      monthCells.forEach((cell, index) => {
+        const monthIndex = (Math.floor((now.getTime() - START_DATE.getTime()) / (10 * 24 * 60 * 60 * 1000))) % 12;
+        cell.classList.toggle("current", index === monthIndex);
+      });
+
+      renderSeasons(now);
+    }
+
+    document.getElementById("timezoneSelect").addEventListener("change", update);
+    update();
+    setInterval(update, 1000);
+  </script>
+</body>
+</html>
