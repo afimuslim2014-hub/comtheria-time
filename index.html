@@ -79,9 +79,9 @@
       <span class="badge">@everyone Update</span>
     </div>
 
-    <p class="small">Current RP date: <strong>3 January, Year 3</strong></p>
+    <p class="small">Current RP date: <strong id="rpDate">--</strong></p>
 
-    <div class="time" id="rpTime">13:00</div>
+    <div class="time" id="rpTime">00:00</div>
     <div class="badge" id="phase">Day</div>
 
     <p><strong>Malaysia Time:</strong> <span id="myTime">--:--</span></p>
@@ -118,11 +118,17 @@
   </div>
 
   <script>
-    const baseDate = new Date("2026-09-25T17:44:00+08:00");
     const monthNames = [
       "January","February","March","April","May","June",
       "July","August","September","October","November","December"
     ];
+
+    const RP_MONTH_DAYS = 30;
+    const RP_YEAR_MONTHS = 12;
+    const REAL_MS_PER_RP_DAY = 8 * 60 * 60 * 1000; // 10 real days / 30 RP days
+    const REAL_MS_PER_RP_HOUR = 20 * 60 * 1000;
+    const START_DATE = new Date("2026-09-25T17:44:00+08:00");
+    const START_YEAR = 3;
 
     const monthsEl = document.getElementById("months");
     monthNames.forEach((name, index) => {
@@ -141,6 +147,21 @@
       }).format(date);
     }
 
+    function getRpState(now) {
+      const elapsedMs = now.getTime() - START_DATE.getTime();
+      const totalRpDays = Math.floor(elapsedMs / REAL_MS_PER_RP_DAY);
+      const currentYear = START_YEAR + Math.floor(totalRpDays / (RP_MONTH_DAYS * RP_YEAR_MONTHS));
+      const monthOffset = Math.floor(totalRpDays / RP_MONTH_DAYS) % RP_YEAR_MONTHS;
+      const currentMonth = monthNames[monthOffset];
+      const dayOfMonth = (totalRpDays % RP_MONTH_DAYS) + 1;
+
+      const rpHoursElapsed = Math.floor(elapsedMs / REAL_MS_PER_RP_HOUR);
+      const rpHour = rpHoursElapsed % 24;
+      const rpMinute = Math.floor((elapsedMs % REAL_MS_PER_RP_HOUR) / (60 * 1000));
+
+      return { currentMonth, dayOfMonth, currentYear, rpHour, rpMinute };
+    }
+
     function update() {
       const now = new Date();
       const malaysia = formatTime(now, "Asia/Kuala_Lumpur");
@@ -150,12 +171,8 @@
       document.getElementById("myTime").textContent = malaysia;
       document.getElementById("localTime").textContent = local;
 
-      const malaysiaNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" }));
-      const diffMs = malaysiaNow.getTime() - baseDate.getTime();
-
-      const rpHoursElapsed = diffMs / (20 * 60 * 1000);
-      const rpHour = Math.floor(rpHoursElapsed) % 24;
-      const rpMinute = Math.round((rpHoursElapsed % 1) * 60) % 60;
+      const { currentMonth, dayOfMonth, currentYear, rpHour, rpMinute } = getRpState(now);
+      document.getElementById("rpDate").textContent = `${dayOfMonth} ${currentMonth}, Year ${currentYear}`;
 
       document.getElementById("rpTime").textContent =
         String(rpHour).padStart(2, "0") + ":" + String(rpMinute).padStart(2, "0");
